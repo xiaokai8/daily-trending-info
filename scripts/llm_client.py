@@ -398,7 +398,7 @@ class LLMClientBase:
             time.sleep(status.wait_seconds)
 
         # Use Gemini 2.5 Flash Lite - highest RPM (10) among free models
-        model = "gemini-2.5-flash"
+        model = "gemini-3.1-flash-lite"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
         for attempt in range(max_retries):
@@ -512,7 +512,7 @@ class LLMClientBase:
             )
             time.sleep(status.wait_seconds)
 
-        model = "gemini-2.5-flash"
+        model = "gemini-3.1-flash-lite"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
         for attempt in range(max_retries):
