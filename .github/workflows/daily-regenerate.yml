@@ -1,4 +1,4 @@
-name: Daily Website Regeneration
+name: pages
 
 on:
   # Run on push to main
