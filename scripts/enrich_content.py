@@ -91,6 +91,35 @@ STORY_SUMMARIES_SCHEMA = {
     "required": ["summaries"],
 }
 
+CHINESE_SUMMARIES_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "summaries": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Original English title (exact copy, do not translate)",
+                    },
+                    "title_cn": {
+                        "type": "string",
+                        "description": "Simplified Chinese translation of the title, accurate and natural",
+                    },
+                    "summary_cn": {
+                        "type": "string",
+                        "description": "30-60 character Simplified Chinese summary of the story, written as a standalone sentence",
+                    },
+                    "source": {"type": "string", "description": "Source name (keep as-is)"},
+                },
+                "required": ["title", "title_cn", "summary_cn"],
+            },
+        }
+    },
+    "required": ["summaries"],
+}
+
 
 @dataclass
 class WordOfTheDay:
@@ -127,12 +156,23 @@ class StorySummary:
 
 
 @dataclass
+class ChineseSummary:
+    """Represents a Chinese translation of a story title + brief description."""
+
+    title: str
+    title_cn: str
+    summary_cn: str
+    source: str
+
+
+@dataclass
 class EnrichedContent:
     """Container for all enriched content."""
 
     word_of_the_day: Optional[WordOfTheDay] = None
     grokipedia_article: Optional[GrokipediaArticle] = None
     story_summaries: List[StorySummary] = field(default_factory=list)
+    chinese_summaries: List[ChineseSummary] = field(default_factory=list)
 
 
 class ContentEnricher(LLMClientBase):
@@ -194,6 +234,11 @@ class ContentEnricher(LLMClientBase):
         logger.info("Generating story summaries...")
         enriched.story_summaries = self._generate_story_summaries(trends[:10])
         logger.info(f"  Generated {len(enriched.story_summaries)} summaries")
+
+        # Phase 5: Chinese Summaries (Simplified Chinese)
+        logger.info("Generating Chinese summaries...")
+        enriched.chinese_summaries = self._generate_cn_summaries(trends[:20])
+        logger.info(f"  Generated {len(enriched.chinese_summaries)} Chinese summaries")
 
         return enriched
 
@@ -557,6 +602,74 @@ Respond with ONLY a valid JSON object:
                         )
                     )
 
+        return summaries
+
+    # =========================================================================
+    # PHASE 5: Chinese Summaries (Simplified Chinese)
+    # =========================================================================
+
+    def _generate_cn_summaries(
+        self, trends: List[Dict], max_stories: int = 20
+    ) -> List[ChineseSummary]:
+        """
+        Generate Simplified Chinese translations of titles and brief summaries
+        for top trending stories.
+
+        Uses LLM to translate titles and write 30-60 character Chinese summaries.
+        Falls back to empty list if LLM is unavailable (non-critical feature).
+        """
+        if not trends or not self.google_key:
+            return []
+
+        # Prepare story data
+        stories = []
+        for t in trends[:max_stories]:
+            title = t.get("title", "")
+            source = t.get("source", "").replace("_", " ").title()
+            desc = (t.get("description", "") or "")[:200]
+            if title:
+                stories.append(
+                    {"title": title, "source": source, "description": desc}
+                )
+
+        if not stories:
+            return []
+
+        prompt = (
+            "You are a professional translator translating trending news stories "
+            "from English into Simplified Chinese (简体中文).\n\n"
+            "STORIES TO TRANSLATE:\n"
+            f"{json.dumps(stories, indent=2)}\n\n"
+            "For each story:\n"
+            "1. Translate the title into natural Simplified Chinese (title_cn)\n"
+            "2. Write a standalone 30-60 character Chinese summary sentence "
+            "(summary_cn) that captures the essence of the story. Use context "
+            "from the title and description. End with a Chinese period (.).\n\n"
+            "RULES:\n"
+            "- title must be an exact copy of the original English title (do NOT translate into title)\n"
+            "- title_cn must be Simplified Chinese only, no English mixed in\n"
+            "- summary_cn must be 30-60 Chinese characters, one complete sentence\n"
+            "- source field: keep the original source name unchanged\n"
+            "- Be accurate, use journalistic Chinese style\n\n"
+            "Return a JSON object with a summaries array."
+        )
+
+        data = self._call_google_ai_structured(
+            prompt, CHINESE_SUMMARIES_SCHEMA, max_tokens=3000, max_retries=2
+        )
+
+        summaries: List[ChineseSummary] = []
+        if data and data.get("summaries"):
+            for item in data["summaries"]:
+                if item.get("title") and item.get("title_cn") and item.get("summary_cn"):
+                    summaries.append(
+                        ChineseSummary(
+                            title=item["title"],
+                            title_cn=item["title_cn"],
+                            summary_cn=item["summary_cn"],
+                            source=item.get("source", ""),
+                        )
+                    )
         return summaries
 
 

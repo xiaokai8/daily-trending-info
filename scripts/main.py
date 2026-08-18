@@ -771,6 +771,36 @@ class Pipeline:
                 if not trend.get("description"):
                     trend["description"] = summary
 
+    def _apply_chinese_summaries(self, trends: List[Record]) -> None:
+        """Attach Chinese translations (title_cn, summary_cn) to trend items."""
+        if not self.enriched_content or not getattr(
+            self.enriched_content, "chinese_summaries", None
+        ):
+            return
+
+        cn_map: Dict[str, Dict[str, str]] = {}
+        for item in self.enriched_content.chinese_summaries:
+            title = getattr(item, "title", None) or item.get("title")
+            title_cn = getattr(item, "title_cn", None) or item.get("title_cn")
+            summary_cn = getattr(item, "summary_cn", None) or item.get("summary_cn")
+            if title and (title_cn or summary_cn):
+                cn_map[self._normalize_title(title)] = {
+                    "title_cn": title_cn or "",
+                    "summary_cn": summary_cn or "",
+                }
+
+        if not cn_map:
+            return
+
+        for trend in trends:
+            title = trend.get("title", "")
+            if not title:
+                continue
+            cn = cn_map.get(self._normalize_title(title))
+            if cn:
+                trend["title_cn"] = cn["title_cn"]
+                trend["summary_cn"] = cn["summary_cn"]
+
     def _step_enrich_content(self) -> None:
         """Enrich content with Word of Day, Grokipedia article, and story summaries."""
         logger.info("[5/16] Enriching content...")
@@ -895,6 +925,7 @@ class Pipeline:
             )
 
         self._apply_story_summaries(trends_data)
+        self._apply_chinese_summaries(trends_data)
 
         images_data = [
             asdict(i) if hasattr(i, "__dataclass_fields__") else i for i in self.images

@@ -117,11 +117,17 @@
                             
                             <h3 class="story-title">
                                 <a href="{{ story.url }}" target="_blank" rel="noopener">{{ story.title }}</a>
+                                {% if story.title_cn %}
+                                <span class="title-cn">{{ story.title_cn }}</span>
+                                {% endif %}
                             </h3>
                         </header>
                         
                         {% if summary %}
-                        <p class="story-summary">{{ summary[:120] }}{% if summary|length > 120 %}...{% endif %}</p>
+                            <p class="story-summary">{{ summary[:120] }}{% if summary|length > 120 %}...{% endif %}</p>
+                        {% endif %}
+                        {% if story.title_cn %}
+                            <p class="story-summary-cn">{{ story.summary_cn }}</p>
                         {% endif %}
                         
                         <footer class="story-meta">

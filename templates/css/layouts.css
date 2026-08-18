@@ -1191,3 +1191,43 @@ body.layout-stacked .top-stories article.story-card {
         padding-bottom: 0.5rem;
     }
 }
+
+
+/* Chinese title translation (shown below English title) */
+.top-stories .title-cn {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--color-muted);
+    margin-top: 0.25rem;
+    line-height: 1.4;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.top-stories article.story-card.featured .title-cn {
+    font-size: 0.95rem;
+}
+
+/* Chinese summary (shown below English summary, only for featured card) */
+.top-stories .story-summary-cn {
+    display: none;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+}
+
+.top-stories article.story-card.featured .story-summary-cn {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* View-list Chinese text */
+body.view-list .top-stories .story-summary-cn,
+body.view-list .top-stories .title-cn {
+    display: block;
+}
