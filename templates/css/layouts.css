@@ -1226,6 +1226,29 @@ body.layout-stacked .top-stories article.story-card {
     overflow: hidden;
 }
 
+/* Category section Chinese text */
+.stories-grid .title-cn {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #666);
+    line-height: 1.4;
+    margin-top: 2px;
+}
+.stories-grid .story-summary-cn {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.78rem;
+    color: var(--color-text-secondary, #666);
+    line-height: 1.4;
+    margin: 4px 0 0 0;
+}
+body.view-list .stories-grid .story-summary-cn,
+body.view-list .stories-grid .title-cn {
+    display: block;
+}
+
 /* View-list Chinese text */
 body.view-list .top-stories .story-summary-cn,
 body.view-list .top-stories .title-cn {

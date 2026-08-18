@@ -180,8 +180,10 @@
                     </figure>
                     <div class="story-content">
                         <h3 class="story-title" style="font-size: 1.1rem;">
-                            <a href="{{ story.url }}" target="_blank" rel="noopener">{{ story.title }}</a>
-                        </h3>
+                                                    <a href="{{ story.url }}" target="_blank" rel="noopener">{{ story.title }}</a>
+                                                    {% if story.title_cn %}<span class="title-cn">{{ story.title_cn }}</span>{% endif %}
+                                                </h3>
+                                                {% if story.title_cn %}<p class="story-summary-cn">{{ story.summary_cn }}</p>{% endif %}
                         <footer class="story-meta">
                             <span>{{ source_display }}</span>
                             <span aria-hidden="true">•</span>

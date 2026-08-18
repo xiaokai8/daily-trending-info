@@ -237,7 +237,7 @@ class ContentEnricher(LLMClientBase):
 
         # Phase 5: Chinese Summaries (Simplified Chinese)
         logger.info("Generating Chinese summaries...")
-        enriched.chinese_summaries = self._generate_cn_summaries(trends[:20])
+        enriched.chinese_summaries = self._generate_cn_summaries(trends[:50])
         logger.info(f"  Generated {len(enriched.chinese_summaries)} Chinese summaries")
 
         return enriched
