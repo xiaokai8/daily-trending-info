@@ -33,7 +33,7 @@ def test_health_check_marks_source_flaky_after_retry_success():
     from source_catalog import get_source_by_key
     from source_health_check import check_source
 
-    source = get_source_by_key("news_npr")
+    source = get_source_by_key("gnews_china")
     assert source is not None
 
     session = _DummySession(
@@ -54,12 +54,12 @@ def test_health_check_marks_source_flaky_after_retry_success():
     assert result["failed_attempts"] == 1
 
 
-def test_health_sources_include_all_active_reddit_feeds():
-    """Catalog-backed health checks should include expanded Reddit coverage."""
+def test_health_sources_include_all_active_sources():
+    """Catalog-backed health checks should include all active sources."""
     from source_catalog import get_health_sources
 
     keys = {source.key for source in get_health_sources()}
-    assert "reddit_nba" in keys
-    assert "reddit_soccer" in keys
-    assert "reddit_todayilearned" in keys
-    assert "cmmc_reddit_cmmc" in keys
+    assert "baidu_hot" in keys
+    assert "toutiao_hot" in keys
+    assert "gnews_china" in keys
+    assert "github_agent_top" in keys
