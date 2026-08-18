@@ -686,26 +686,17 @@ class TrendCollector:
         logger.info("Collecting trends from all sources...")
 
         collectors = [
-            ("Google Trends", self._collect_google_trends),
-            ("News RSS Feeds", self._collect_news_rss),
-            ("Tech RSS Feeds", self._collect_tech_rss),
-            ("Science RSS Feeds", self._collect_science_rss),
-            ("Politics RSS Feeds", self._collect_politics_rss),
-            ("Finance RSS Feeds", self._collect_finance_rss),
-            ("Sports RSS Feeds", self._collect_sports_rss),
-            ("Entertainment RSS Feeds", self._collect_entertainment_rss),
+                    ("百度热搜", self._collect_baidu_hot),
+            ("今日头条热榜", self._collect_toutiao_hot),
+            ("Google News 中国 RSS", self._collect_gnews_cn_rss),
+            ("Google News 科技 RSS", self._collect_gnews_tech_cn),
+            ("Google News 财经 RSS", self._collect_gnews_finance_cn),
+            ("Google News 国际 RSS", self._collect_gnews_intl_cn),
             ("Hacker News", self._collect_hackernews),
-            ("Lobsters", self._collect_lobsters),
-            ("Reddit", self._collect_reddit),
-            ("Product Hunt", self._collect_product_hunt),
             ("Dev.to", self._collect_devto),
-            ("Slashdot", self._collect_slashdot),
-            ("Ars Features", self._collect_ars_frontpage),
             ("GitHub Trending", self._collect_github_trending),
             ("GitHub Agent Top Stars", self._collect_github_agent),
             ("GitHub Agent Fast-Growing", self._collect_github_agent_fast),
-            ("Wikipedia Current Events", self._collect_wikipedia_current),
-            ("CMMC/Federal Compliance", self._collect_cmmc),
         ]
 
         for name, collector in collectors:
@@ -1483,6 +1474,97 @@ class TrendCollector:
                 )
 
         return trends[:limit]
+
+    def _collect_baidu_hot(self) -> List[Trend]:
+        """Collect Baidu hot search topics."""
+        trends: List[Trend] = []
+        sources = self._collector_sources("baidu_hot")
+        source = sources[0] if sources else None
+        if not source:
+            return trends
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "Referer": "https://www.baidu.com",
+        }
+        try:
+            response = self.session.get(source.url, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json().get("data", {})
+            cards = data.get("cards", [])
+            hot_list = next((c for c in cards if c.get("component") == "hotList"), None)
+            if not hot_list:
+                return trends
+            content_items = hot_list.get("content", [])
+            for item in content_items[:30]:
+                word = item.get("word", "").strip()
+                if not word or len(word) < 2:
+                    continue
+                url = item.get("appUrl") or item.get("url")
+                score_info = item.get("hot_score")
+                desc = f"热度 {score_info}" if score_info else ""
+                trends.append(Trend(title=word, source="baidu_hot", url=url, description=desc, score=2.0, timestamp=datetime.now()))
+        except Exception as exc:
+            logger.warning(f"Baidu hot error: {exc}")
+        return trends
+
+    def _collect_toutiao_hot(self) -> List[Trend]:
+        """Collect Toutiao hot board topics."""
+        trends: List[Trend] = []
+        sources = self._collector_sources("toutiao_hot")
+        source = sources[0] if sources else None
+        if not source:
+            return trends
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": "https://www.toutiao.com/",
+        }
+        try:
+            response = self.session.get(source.url, headers=headers, timeout=15)
+            response.raise_for_status()
+            data = response.json().get("data", [])
+            for item in data[:30]:
+                title = item.get("Title", "").strip()
+                if not title or len(title) < 2:
+                    continue
+                url = item.get("Url", "")
+                label = item.get("Label", "")
+                trends.append(Trend(title=title, source="toutiao_hot", url=url, description=label, score=2.0, timestamp=datetime.now()))
+        except Exception as exc:
+            logger.warning(f"今日头条 hot error: {exc}")
+        return trends
+
+
+    def _collect_gnews_cn_rss(self) -> List[Trend]:
+        return self._collect_gnews_rss("gnews_cn_rss")
+
+    def _collect_gnews_tech_cn(self) -> List[Trend]:
+        return self._collect_gnews_rss("gnews_tech_cn")
+
+    def _collect_gnews_finance_cn(self) -> List[Trend]:
+        return self._collect_gnews_rss("gnews_finance_cn")
+
+    def _collect_gnews_intl_cn(self) -> List[Trend]:
+        return self._collect_gnews_rss("gnews_intl_cn")
+
+    def _collect_gnews_rss(self, group: str) -> List[Trend]:
+        """Collect Chinese RSS from Google News."""
+        trends: List[Trend] = []
+        feeds = self._collector_sources(group)
+        for source in feeds:
+            try:
+                response = self._fetch_source_feed(source, timeout=source.timeout_seconds or self.default_timeout)
+                if not response:
+                    continue
+                feed = feedparser.parse(response.content)
+                for entry in feed.entries[:8]:
+                    title = entry.get("title", "").strip()
+                    if not title or len(title) < 5:
+                        continue
+                    trends.append(Trend(title=title, source=source.source_key or source.key, url=entry.get("link"), description=self._clean_html(entry.get("summary", "")), score=1.8, timestamp=parse_feed_entry_timestamp(entry) or datetime.now(), image_url=self._extract_image_from_entry(entry)))
+            except Exception as e:
+                logger.warning(f"{source.name} RSS error: {e}")
+            time.sleep(self.request_delay)
+        return trends
 
     def _collect_wikipedia_current(self) -> List[Trend]:
         """Collect current events from Wikipedia."""
