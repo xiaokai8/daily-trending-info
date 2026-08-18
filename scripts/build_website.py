@@ -357,12 +357,12 @@ class WebsiteBuilder:
             "ars_features": "Technology",
             "github_trending": "Technology",
             # Chinese sources
-                        "baidu_hot": "热搜",
-            "toutiao_hot": "热搜",
-            "gnews_china": "World News",
+                        "gnews_china": "World News",
             "gnews_tech_cn": "Technology",
             "gnews_finance_cn": "Finance",
             "gnews_intl_cn": "World News",
+            "geekpark": "Technology",
+            "sspai": "Technology",
             # Other
             "wikipedia_current": "World News",
             "google_trends": "Trending",

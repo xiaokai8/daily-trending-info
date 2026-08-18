@@ -177,29 +177,23 @@ COLLECTOR_SOURCES: List[SourceSpec] = [
     # -----------------------------------------------------------------------
     # 中文内容源（替换原英文RSS）
     # -----------------------------------------------------------------------
-    _json(
-        "baidu_hot",
-        "百度热搜",
-        "https://top.baidu.com/api/board?keyword=&tab=realtime",
-        "news",
-        source_key="baidu_hot",
-        collector="baidu_hot",
-        json_count_path="items",
-        fallback_url="https://top.baidu.com/api/board?keyword=&tab=hot",
+    _rss(
+        "geekpark",
+        "极客公园",
+        "https://www.geekpark.net/rss",
+        "tech",
+        "geekpark_rss",
         tier=1,
-        source_type="news",
+        source_type="tech",
     ),
-    _json(
-        "toutiao_hot",
-        "今日头条热榜",
-        "https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc",
-        "news",
-        source_key="toutiao_hot",
-        collector="toutiao_hot",
-        json_count_path="items",
-        fallback_url="https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc",
+    _rss(
+        "sspai",
+        "少数派",
+        "https://sspai.com/feed",
+        "tech",
+        "sspai_rss",
         tier=1,
-        source_type="news",
+        source_type="tech",
     ),
     _rss(
         "gnews_china",
@@ -298,7 +292,7 @@ COLLECTOR_SOURCES: List[SourceSpec] = [
     ),
     _json(
         "github_agent_top",
-        "GitHub Agent Top Stars",
+        "GitHub 生态日报",
         "https://api.github.com/search/repositories?q=agent+llm+stars:%3E1000&sort=stars&order=desc&per_page=15",
         "community",
         source_key="github_agent",
@@ -310,7 +304,7 @@ COLLECTOR_SOURCES: List[SourceSpec] = [
     ),
     _json(
         "github_agent_fast",
-        "GitHub Agent Fast-Growing",
+        "GitHub 生态日报",
         "https://api.github.com/search/repositories?q=agent+llm+created:>=2026-05-18+stars:%3E100&sort=stars&order=desc&per_page=15",
         "community",
         source_key="github_agent",
