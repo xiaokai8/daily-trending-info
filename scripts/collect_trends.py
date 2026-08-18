@@ -702,6 +702,8 @@ class TrendCollector:
             ("Slashdot", self._collect_slashdot),
             ("Ars Features", self._collect_ars_frontpage),
             ("GitHub Trending", self._collect_github_trending),
+            ("GitHub Agent Top Stars", self._collect_github_agent),
+            ("GitHub Agent Fast-Growing", self._collect_github_agent_fast),
             ("Wikipedia Current Events", self._collect_wikipedia_current),
             ("CMMC/Federal Compliance", self._collect_cmmc),
         ]
@@ -1401,6 +1403,86 @@ class TrendCollector:
             )
 
         return trends
+
+
+    def _collect_github_agent(self) -> List[Trend]:
+        """Collect top AI agent repositories by total stars."""
+        return self._collect_github_agent_impl("github_agent", "github_agent")
+
+    def _collect_github_agent_fast(self) -> List[Trend]:
+        """Collect fast-growing AI agent repositories (created in last 90 days)."""
+        return self._collect_github_agent_impl("github_agent", "github_agent_fast")
+
+    def _collect_github_agent_impl(
+        self, source_key: str, collector_key: str
+    ) -> List[Trend]:
+        """
+        Shared implementation for GitHub agent repo collectors.
+
+        Unlike github_trending, we DO NOT filter by is_english_text — many top
+        agent projects have non-English descriptions and should be included.
+        """
+        trends: List[Trend] = []
+        limit = self._get_limit(source_key, 12)
+        sources = self._collector_sources(collector_key)
+        source = sources[0] if sources else None
+        url = source.url if source else None
+        if url:
+            try:
+                response = self.session.get(
+                    url,
+                    timeout=self.default_timeout,
+                    headers={
+                        "Accept": "application/vnd.github+json",
+                        "User-Agent": "HermesAgent/1.0",
+                    },
+                )
+                response.raise_for_status()
+                items = response.json().get("items", [])
+            except (
+                requests.RequestException,
+                AttributeError,
+                KeyError,
+                ValueError,
+            ) as exc:
+                logger.warning(f"GitHub Agent ({collector_key}) failed: {exc}")
+                return trends
+
+            for repo in items[:limit]:
+                name = repo.get("full_name") or repo.get("name")
+                if not name:
+                    continue
+
+                description = (repo.get("description") or "").strip()
+                language = (repo.get("language") or "").strip()
+                stars = int(repo.get("stargazers_count", 0) or 0)
+
+                parts = [name]
+                if stars:
+                    parts.append(f"({stars:,} stars)")
+                if language:
+                    parts.append(language)
+                if description:
+                    parts.append(f"— {description[:70]}")
+                title = " ".join(parts)
+
+                trends.append(
+                    Trend(
+                        title=title[:120],
+                        source=source_key,
+                        url=repo.get("html_url"),
+                        description=description,
+                        score=1.0 + min(stars / 20000, 1.5),
+                        timestamp=parse_timestamp(
+                            repo.get("pushed_at")
+                            or repo.get("updated_at")
+                            or repo.get("created_at")
+                        )
+                        or datetime.now(),
+                    )
+                )
+
+        return trends[:limit]
 
     def _collect_wikipedia_current(self) -> List[Trend]:
         """Collect current events from Wikipedia."""
