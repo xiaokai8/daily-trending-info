@@ -735,6 +735,36 @@ class TrendCollector:
         logger.info(f"Total unique trends: {len(self.trends)}")
         return self.trends
 
+    def _collect_tidings_rss(self) -> List[Trend]:
+        """Collect all 200 Tidings Top 200 curated feeds."""
+        trends: List[Trend] = []
+        feeds = self._collector_sources("tidings_rss")
+        for source in feeds:
+            try:
+                response = self._fetch_source_feed(source, timeout=source.timeout_seconds or self.default_timeout)
+                if not response:
+                    continue
+                feed = feedparser.parse(response.content)
+                for entry in feed.entries[:4]:
+                    title = entry.get("title", "").strip()
+                    if not title or len(title) < 5:
+                        continue
+                    trends.append(
+                        Trend(
+                            title=title,
+                            source=source.source_key or source.key,
+                            url=entry.get("link"),
+                            description=self._clean_html(entry.get("summary", "")),
+                            score=1.5,
+                            timestamp=parse_feed_entry_timestamp(entry) or datetime.now(),
+                            image_url=self._extract_image_from_entry(entry),
+                        )
+                    )
+            except Exception as e:
+                logger.warning(f"Tidings RSS {source.key} error: {e}")
+            time.sleep(self.request_delay)
+        return trends
+
     def get_freshness_ratio(self) -> float:
         """Calculate the ratio of fresh trends (from past 24 hours)."""
         if not self.trends:
