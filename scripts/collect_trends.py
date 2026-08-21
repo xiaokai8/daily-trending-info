@@ -686,17 +686,7 @@ class TrendCollector:
         logger.info("Collecting trends from all sources...")
 
         collectors = [
-                    ("Google News 中国 RSS", self._collect_gnews_cn_rss),
-            ("Google News 科技 RSS", self._collect_gnews_tech_cn),
-            ("Google News 财经 RSS", self._collect_gnews_finance_cn),
-            ("Google News 国际 RSS", self._collect_gnews_intl_cn),
-            ("Hacker News", self._collect_hackernews),
-            ("极客公园", self._collect_geekpark_rss),
-            ("少数派", self._collect_sspai_rss),
-            ("Dev.to", self._collect_devto),
-            ("GitHub Trending", self._collect_github_trending),
-            ("GitHub 生态日报", self._collect_github_agent),
-            ("GitHub 生态日报", self._collect_github_agent_fast),
+            ("Tidings Top 200", self._collect_tidings_rss),
         ]
 
         for name, collector in collectors:

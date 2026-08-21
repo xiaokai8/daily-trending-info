@@ -313,59 +313,16 @@ class WebsiteBuilder:
         groups: DefaultDict[str, List[Dict[str, Any]]] = defaultdict(list)
 
         category_map = {
-            # RSS feeds by category prefix
-            "news_": "World News",
-            "tech_": "Technology",
-            "science_": "Science",
-            "politics_": "Politics",
-            "finance_": "Finance",
-            "entertainment_": "Entertainment",
-            "sports_": "Sports",
-            # Reddit - News & World
-            "reddit_news": "World News",
-            "reddit_worldnews": "World News",
-            "reddit_politics": "Politics",
-            "reddit_upliftingnews": "World News",
-            # Reddit - Tech & Science
-            "reddit_technology": "Technology",
-            "reddit_science": "Science",
-            "reddit_space": "Science",
-            # Reddit - Business & Finance
-            "reddit_business": "Business",
-            "reddit_economics": "Finance",
-            "reddit_personalfinance": "Finance",
-            # Reddit - Entertainment & Culture
-            "reddit_movies": "Entertainment",
-            "reddit_television": "Entertainment",
-            "reddit_music": "Entertainment",
-            "reddit_books": "Entertainment",
-            # Reddit - Sports
-            "reddit_sports": "Sports",
-            "reddit_nba": "Sports",
-            "reddit_soccer": "Sports",
-            # Reddit - Health & Lifestyle
-            "reddit_health": "Health",
-            "reddit_food": "Lifestyle",
-            # Reddit - General
-            "reddit_todayilearned": "World News",
-            # Tech-specific sources
-            "hackernews": "Hacker News",
-            "lobsters": "Technology",
-            "product_hunt": "Technology",
-            "devto": "Technology",
-            "slashdot": "Technology",
-            "ars_features": "Technology",
-            "github_trending": "Technology",
-            # Chinese sources
-                        "gnews_china": "World News",
-            "gnews_tech_cn": "Technology",
-            "gnews_finance_cn": "Finance",
-            "gnews_intl_cn": "World News",
-            "geekpark": "Technology",
-            "sspai": "Technology",
-            # Other
-            "wikipedia_current": "World News",
-            "google_trends": "Trending",
+            "tidings_ai": "AI",
+            "tidings_blogs": "Blogs",
+            "tidings_business": "Business",
+            "tidings_design": "Design",
+            "tidings_entertainment": "Entertainment",
+            "tidings_media": "Media",
+            "tidings_science": "Science",
+            "tidings_security": "Security",
+            "tidings_technology": "Technology",
+            "tidings_world_news": "World News",
         }
 
         for trend in self.ctx.trends:
